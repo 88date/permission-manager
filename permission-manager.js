@@ -56,7 +56,7 @@ class PermissionManager {
         if (!valid) fails.add(group);
       }
     }
-    const allowed = fails.size < ruleGroups.length;
+    const allowed = fails.size < ruleGroups.length || ruleGroups.length === 0;
     const errors = allowed ? null : Array.from(fails);
     return { allowed, caption, errors };
   }
