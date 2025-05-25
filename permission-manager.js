@@ -7,16 +7,16 @@ const ERROR_DISABLED_PERMISSION = 'disabled';
 class PermissionManager {
   name = null;
   rules = {};
-  permissions = {};
+  fields = {};
   #schema = null;
-  #permissionList = [];
+  #fieldsList = [];
 
-  constructor({ name, rules, permissions, schema }) {
+  constructor({ name, rules, fields, schema }) {
     this.name = name;
     this.rules = rules;
-    this.permissions = permissions;
+    this.fields = fields;
     this.#schema = Schema.from(schema);
-    this.#permissionList = Object.keys(permissions);
+    this.#fieldsList = Object.keys(fields);
   }
 
   #checkSchema(entity) {
@@ -33,17 +33,18 @@ class PermissionManager {
     return rule.check(entity, parameters);
   }
 
-  #compute(entity) {
+  #compute(entity, flat = false) {
     const permissions = {};
-    for (const name of this.#permissionList) {
-      permissions[name] = this.checkPermission(name, entity);
+    for (const field of this.#fieldsList) {
+      const permission = this.checkPermission(field, entity);
+      permissions[field] = flat ? permission.allowed : permission;
     }
     return permissions;
   }
 
-  checkPermission(name, entity) {
-    const permission = this.permissions[name];
-    const { ruleGroups, disabled, caption } = permission;
+  checkPermission(fieldName, entity) {
+    const field = this.fields[fieldName];
+    const { ruleGroups, disabled, caption } = field;
     const fails = [];
     if (disabled) {
       return { allowed: false, errors: [ERROR_DISABLED_PERMISSION] };
@@ -60,18 +61,14 @@ class PermissionManager {
     return { allowed, caption, errors };
   }
 
-  getPermissions(entity) {
+  for(entity) {
     this.#checkSchema(entity);
     return this.#compute(entity);
   }
 
-  getPermissionsFlat(entity) {
-    const permissions = this.getPermissions(entity);
-    const flat = {};
-    for (const name of this.#permissionList) {
-      flat[name] = permissions[name].allowed;
-    }
-    return flat;
+  flat(entity) {
+    this.#checkSchema(entity);
+    return this.#compute(entity, true);
   }
 }
 
