@@ -46,7 +46,7 @@ class PermissionManager {
     const field = this.fields[fieldName];
     const { ruleGroups, disabled, caption } = field;
     const fails = new Set();
-    let success = true
+    let success = true;
     if (disabled) {
       return { allowed: false, errors: [ERROR_DISABLED_PERMISSION] };
     }
@@ -55,13 +55,13 @@ class PermissionManager {
         const valid = this.#checkRule(ruleName, entity, parameters);
         if (valid === null) continue;
         if (!valid) {
-          if (required) success = false
-          fails.add(group); 
+          if (required) success = false;
+          fails.add(group);
         }
-
       }
     }
-    const allowed = success && fails.size < ruleGroups.length || ruleGroups.length === 0;
+    const allowed =
+      (success && fails.size < ruleGroups.length) || ruleGroups.length === 0;
     const errors = allowed ? null : Array.from(fails);
     return { allowed, caption, errors };
   }
