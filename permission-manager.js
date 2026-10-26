@@ -18,16 +18,23 @@ class PermissionManager {
     this.#schema = Schema.from(schema);
     this.#fieldsList = Object.keys(fields);
 
-    for (const fieldName of this.#fieldsList) {
+    this.#validateFields(fields);
+  }
+
+  #validateFields(fields, path = 'fields') {
+    for (const fieldName of Object.keys(fields)) {
+      const { ruleGroups, values } = fields[fieldName];
+      const fieldPath = `${path}.${fieldName}`;
       const groupNames = new Set();
-      for (const { name: groupName } of fields[fieldName].ruleGroups) {
+      for (const { name: groupName } of ruleGroups) {
         if (groupNames.has(groupName)) {
           throw new Error(
-            `Duplicate rule group "${groupName}" in field "${fieldName}"`,
+            `Duplicate rule group "${groupName}" in "${fieldPath}"`,
           );
         }
         groupNames.add(groupName);
       }
+      if (values) this.#validateFields(values, `${fieldPath}.values`);
     }
   }
 
@@ -54,8 +61,7 @@ class PermissionManager {
     return permissions;
   }
 
-  checkPermission(fieldName, entity) {
-    const field = this.fields[fieldName];
+  #checkField(field, entity) {
     const { ruleGroups, disabled, caption } = field;
     const fails = new Set();
     let success = true;
@@ -76,6 +82,27 @@ class PermissionManager {
       (success && fails.size < ruleGroups.length) || ruleGroups.length === 0;
     const errors = allowed ? null : Array.from(fails);
     return { allowed, caption, errors };
+  }
+
+  checkPermission(fieldName, entity) {
+    const field = this.fields[fieldName];
+    const permission = this.#checkField(field, entity);
+    if (!field.values) return permission;
+
+    const values = {};
+    for (const [valueName, value] of Object.entries(field.values)) {
+      if (!permission.allowed) {
+        values[valueName] = {
+          allowed: false,
+          caption: value.caption,
+          errors: [...permission.errors],
+        };
+        continue;
+      }
+      const result = this.#checkField(value, entity);
+      values[valueName] = { ...result, caption: value.caption };
+    }
+    return { ...permission, values };
   }
 
   for(entity) {

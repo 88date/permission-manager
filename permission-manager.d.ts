@@ -10,16 +10,24 @@ export interface PermissionRuleGroup {
   required?: boolean;
 }
 
-export interface PermissionField {
+export interface PermissionValue {
   caption?: string;
   disabled?: boolean;
   ruleGroups: PermissionRuleGroup[];
 }
 
-export interface PermissionResult {
+export interface PermissionField extends PermissionValue {
+  values?: Record<string, PermissionValue>;
+}
+
+export interface PermissionValueResult {
   allowed: boolean;
   caption?: string;
   errors: string[] | null;
+}
+
+export interface PermissionResult extends PermissionValueResult {
+  values?: Record<string, PermissionValueResult>;
 }
 
 export interface PermissionManagerOptions<Entity = unknown> {

@@ -134,7 +134,7 @@ test('Reject duplicate rule group names within a field', () => {
       }),
     {
       name: 'Error',
-      message: 'Duplicate rule group "default" in field "access"',
+      message: 'Duplicate rule group "default" in "fields.access"',
     },
   );
 });
