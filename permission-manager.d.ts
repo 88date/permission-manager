@@ -1,8 +1,42 @@
-export class PermissionManager {
+export interface PermissionRule<Entity = unknown, RuleParameters = unknown> {
+  caption?: string;
+  parameters?: unknown;
+  check: (entity: Entity, parameters: RuleParameters) => boolean | null;
+}
+
+export interface PermissionRuleGroup {
   name: string;
-  rules: any;
-  permissions: any;
-  checkPermission(permissionName: string, entity: any): void;
-  getPermissions(entity: any): void;
-  getPermissionsFlat(entity: any): void;
+  rules: Record<string, unknown>;
+  required?: boolean;
+}
+
+export interface PermissionField {
+  caption?: string;
+  disabled?: boolean;
+  ruleGroups: PermissionRuleGroup[];
+}
+
+export interface PermissionResult {
+  allowed: boolean;
+  caption?: string;
+  errors: string[] | null;
+}
+
+export interface PermissionManagerOptions<Entity = unknown> {
+  name: string;
+  rules: Record<string, PermissionRule<Entity, any>>;
+  fields: Record<string, PermissionField>;
+  schema: object;
+}
+
+export class PermissionManager<Entity = unknown> {
+  constructor(options: PermissionManagerOptions<Entity>);
+
+  name: string;
+  rules: Record<string, PermissionRule<Entity, any>>;
+  fields: Record<string, PermissionField>;
+
+  checkPermission(fieldName: string, entity: Entity): PermissionResult;
+  for(entity: Entity): Record<string, PermissionResult>;
+  flat(entity: Entity): Record<string, boolean>;
 }
