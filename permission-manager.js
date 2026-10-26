@@ -17,6 +17,18 @@ class PermissionManager {
     this.fields = fields;
     this.#schema = Schema.from(schema);
     this.#fieldsList = Object.keys(fields);
+
+    for (const fieldName of this.#fieldsList) {
+      const groupNames = new Set();
+      for (const { name: groupName } of fields[fieldName].ruleGroups) {
+        if (groupNames.has(groupName)) {
+          throw new Error(
+            `Duplicate rule group "${groupName}" in field "${fieldName}"`,
+          );
+        }
+        groupNames.add(groupName);
+      }
+    }
   }
 
   #checkSchema(entity) {

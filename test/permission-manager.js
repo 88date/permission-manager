@@ -114,3 +114,40 @@ test('Check instance', async () => {
   });
   assert.deepStrictEqual(permissionManager instanceof PermissionManager, true);
 });
+
+test('Reject duplicate rule group names within a field', () => {
+  assert.throws(
+    () =>
+      new PermissionManager({
+        name: 'test',
+        rules,
+        fields: {
+          access: {
+            ruleGroups: [
+              { name: 'default', rules: { noLevel: true } },
+              { name: 'alternative', rules: { hasLevel: true } },
+              { name: 'default', rules: { hasGender: true } },
+            ],
+          },
+        },
+        schema,
+      }),
+    {
+      name: 'Error',
+      message: 'Duplicate rule group "default" in field "access"',
+    },
+  );
+});
+
+test('Allow group names shared by fields and fields without groups', () => {
+  const permissionManager = new PermissionManager({
+    name: 'test',
+    rules,
+    fields: { ...fields, unrestricted: { ruleGroups: [] } },
+    schema,
+  });
+  assert.strictEqual(
+    permissionManager.checkPermission('unrestricted', {}).allowed,
+    true,
+  );
+});
